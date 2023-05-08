@@ -1,47 +1,43 @@
 #include "main.h"
-#include <fcntl.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 /**
- * read_textfile - reads a text file and prints it to the POSIX standard output
- * @filename: the name of the file to read
- * @buffer: a pointer to a buffer to store the file contents in
- * @size: the size of the buffer
- * Return: the number of bytes read and printed, or 0 on error
-*/
+ * read_textfile - Reads a text file and prints it to POSIX stdout.
+ * @filename: A pointer to the name of the file.
+ * @letters: The number of letters the
+ *           function should read and print.
+ *
+ * Return: If the function fails or filename is NULL - 0.
+ *         O/w - the actual number of bytes the function can read and print.
+ */
 
-ssize_t read_textfile(const char *filename, char **buffer, size_t size)
-
+ssize_t read_textfile(const char *filename, size_t letters)
 {
-	int fd;
-	ssize_t nread, nwritten;
+	 ssize_t o, r, w;
+	char *buffer;
 
-	if (!filename || !buffer || size == 0)
-	return (0);
+	if (filename == NULL)
+		return (0);
 
-	fd = open(filename, O_RDONLY);
-	if (fd == -1)
-	return (0);
+	buffer = malloc(sizeof(char) * letters);
+	if (buffer ==  NULL)
+		return (0);
 
-	*buffer = malloc(size);
-	if (!*buffer)
-	return (0);
+	o = open(filename, O_RDONLY);
+	r = read(o, buffer, letters);
+	w = write(STDOUT_FILENO, buffer, r);
 
-	nread = read(fd, *buffer, size - 1);
-	if (nread == -1)
-	return (0);
-
-	(*buffer)[nread] = '\0';
-	nwritten = 0;
-	while (nwritten < nread)
+	if (o == -1 || r == -1 || w == -1 || w != r)
 	{
-	ssize_t n = write(STDOUT_FILENO, *buffer + nwritten, nread - nwritten);
-	if (n == -1)
-	return (0);
-	nwritten += n;
+		free(buffer);
+		return (0);
 	}
 
-	close(fd);
-	return (nwritten);
+	free(buffer);
+	close(o);
+
+	return (w);
+
 }
